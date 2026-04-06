@@ -389,9 +389,13 @@
         let totalStudySeconds = parseInt(localStorage.getItem('totalStudySeconds')) || 0;
         let unconvertedSeconds = parseInt(localStorage.getItem('unconvertedSeconds')) || 0;
         let unlockedChamps = JSON.parse(localStorage.getItem('unlockedChamps')) || [];
-        let currentRoleFilter = 'All'; // New filter state
+        let currentRoleFilter = 'All'; 
         
         let isRunning = false, timerInterval = null, currentSessionSeconds = 0;
+        
+        // TIMER FIX VARIABLES
+        let sessionStartTime = 0;
+        let sessionAccumulated = 0;
         
         let currentSkins = [];
         let currentSkinIndex = 0;
@@ -415,10 +419,21 @@
             }
         }
 
+        // --- FIXED TIMER LOGIC ---
         function toggleTimer() {
-            if (isRunning) { clearInterval(timerInterval); document.getElementById('toggle-text').innerText = "RESUME"; } 
+            if (isRunning) { 
+                clearInterval(timerInterval); 
+                sessionAccumulated = currentSessionSeconds; // Save progress
+                document.getElementById('toggle-text').innerText = "RESUME"; 
+            } 
             else { 
-                timerInterval = setInterval(() => { currentSessionSeconds++; updateTimerDisplay(); }, 1000); 
+                sessionStartTime = Date.now(); // Mark exactly when they started
+                timerInterval = setInterval(() => { 
+                    // Calculate precise seconds passed to bypass browser tab throttling
+                    const elapsedSeconds = Math.floor((Date.now() - sessionStartTime) / 1000);
+                    currentSessionSeconds = sessionAccumulated + elapsedSeconds; 
+                    updateTimerDisplay(); 
+                }, 1000); 
                 document.getElementById('toggle-text').innerText = "PAUSE"; 
                 document.getElementById('save-btn').classList.add('visible');
             }
@@ -430,7 +445,11 @@
             let newGems = Math.floor(unconvertedSeconds / 900);
             if (newGems > 0) { gems += newGems; unconvertedSeconds %= 900; }
             
-            clearInterval(timerInterval); isRunning = false; currentSessionSeconds = 0;
+            clearInterval(timerInterval); 
+            isRunning = false; 
+            currentSessionSeconds = 0;
+            sessionAccumulated = 0; // Reset for next session
+            
             document.getElementById('toggle-text').innerText = "INITIATE";
             document.getElementById('save-btn').classList.remove('visible');
             
@@ -545,7 +564,6 @@
             setTimeout(() => { screen.style.display = 'none'; screen.classList.remove('reveal-active'); }, 1500);
         }
 
-        // --- ROLE FILTER FUNCTION ---
         function filterRole(role, btnElement) {
             currentRoleFilter = role;
             document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
@@ -575,7 +593,6 @@
             });
         }
 
-        // --- 4. CODEX CAROUSEL LOGIC ---
         async function openCodex(id) {
             const m = document.getElementById('codex-modal'); m.style.display = 'flex';
             const imgEl = document.getElementById('carousel-img');
@@ -611,7 +628,6 @@
                 updateCarouselUI();
 
             } catch (err) {
-                // Fallback for custom champions (Zaahen, Yunara)
                 document.getElementById('lore-name').innerText = formatChampName(id);
                 document.getElementById('lore-title').innerText = "The New Challenger";
                 document.getElementById('lore-body').innerText = "Data regarding this champion is currently classified or unavailable in standard databanks. They have yet to fully reveal their origins to the realm.";
