@@ -60,7 +60,7 @@
         h1 { font-weight: 200; letter-spacing: 3px; font-size: 1.5rem; text-transform: uppercase; background: linear-gradient(45deg, var(--prism-1), var(--prism-2), var(--prism-3), var(--prism-4)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .stats { display: flex; gap: 2rem; font-size: 0.95rem; font-weight: 300; color: var(--text-muted); margin-left: auto; }
         .stats strong { color: var(--text-main); font-weight: 400; font-size: 1.1rem; margin-left: 0.5rem; }
-        .me-icon-container { cursor: help; display: flex; align-items: center; }
+        .me-icon-container { display: flex; align-items: center; } /* Removed cursor:help */
         .me-icon { width: 1.2em; height: 1.2em; vertical-align: text-bottom; margin-left: 4px; }
 
         /* --- NAVIGATION --- */
@@ -198,7 +198,7 @@
         
         <div class="stats">
             <div>Focus: <strong id="total-time-ui">0.00</strong> hrs</div>
-            <div class="me-icon-container" onclick="tryDevMode()">
+            <div class="me-icon-container">
                 Mythic Essence: <strong id="gem-count-ui">0</strong> 
                 <img src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/currency/tokens/mythic_essence.png" class="me-icon" alt="ME">
             </div>
@@ -218,7 +218,7 @@
                 <button id="save-btn" class="modern-btn secondary" onclick="saveTimer()"><span>Conclude & Save</span></button>
             </div>
             <p id="cost-info" style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 300;">
-                1 Mythic Essence <img src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/currency/tokens/mythic_essence.png" class="me-icon" alt="ME"> awarded per 15 minutes.
+                1 Mythic Essence <img src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/currency/tokens/mythic_essence.png" class="me-icon" alt="ME" onclick="tryDevMode()" style="cursor: pointer;" title="Admin Override"> awarded per 15 minutes.
             </p>
         </div>
         
@@ -408,14 +408,26 @@
             document.getElementById('gem-count-ui').innerText = isDevMode ? '∞' : gems;
         }
 
+        // --- NEW ADMIN OVERRIDE TOGGLE ---
         function tryDevMode() {
-            const pass = prompt("Enter System Override Code:");
-            if (pass === "Chroma") {
-                isDevMode = true;
-                document.getElementById('dev-badge').style.display = 'inline-block';
-                document.getElementById('cost-info').style.color = '#ff4757';
-                document.getElementById('cost-info').innerHTML = 'DEVELOPER OVERRIDE: Sandbox Mode. Saves are disabled.';
-                updateHeaderStats();
+            if (!isDevMode) {
+                const pass = prompt("Enter System Override Code:");
+                if (pass === "Naomi") {
+                    isDevMode = true;
+                    document.getElementById('dev-badge').style.display = 'inline-block';
+                    document.getElementById('cost-info').style.color = '#ff4757';
+                    document.getElementById('cost-info').innerHTML = 'DEVELOPER OVERRIDE: Sandbox Mode. Saves are disabled. <img src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/currency/tokens/mythic_essence.png" class="me-icon" alt="ME" onclick="tryDevMode()" style="cursor: pointer;" title="Exit Admin Override">';
+                    updateHeaderStats();
+                }
+            } else {
+                const pass = prompt("Enter System Override Code to Exit:");
+                if (pass === "Naomi") {
+                    isDevMode = false;
+                    document.getElementById('dev-badge').style.display = 'none';
+                    document.getElementById('cost-info').style.color = 'var(--text-muted)';
+                    document.getElementById('cost-info').innerHTML = '1 Mythic Essence <img src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/currency/tokens/mythic_essence.png" class="me-icon" alt="ME" onclick="tryDevMode()" style="cursor: pointer;" title="Admin Override"> awarded per 15 minutes.';
+                    updateHeaderStats();
+                }
             }
         }
 
