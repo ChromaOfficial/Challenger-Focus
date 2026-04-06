@@ -153,7 +153,7 @@
         /* --- CINEMATIC REVEAL --- */
         #reveal-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; z-index: 500; display: none; opacity: 0; transition: opacity 1.5s ease; overflow: hidden; background: #000; }
         .reveal-splash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.7); transform: scale(1.1); animation: zoomOut 8s ease forwards; z-index: 1; }
-        .reveal-icon { display: none; /* Hidden by default on PC */ }
+        .reveal-icon { display: none; }
         @keyframes zoomOut { to { transform: scale(1); } }
         .reveal-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%); display: flex; flex-direction: column; justify-content: flex-end; padding: 5rem; align-items: flex-start; z-index: 10; }
         .reveal-rarity { font-size: 1rem; letter-spacing: 5px; text-transform: uppercase; color: var(--prism-3); margin-bottom: 1rem; opacity: 0; transform: translateY(20px); }
@@ -235,14 +235,12 @@
             #reveal-screen {
                 display: none;
                 perspective: 1000px;
-                /* Add a dark atmospheric background since we hid the splash art */
                 background: radial-gradient(circle at center, #1a1e36 0%, #000 100%);
             }
             .reveal-splash {
-                display: none; /* Completely hide full splash art on mobile */
+                display: none; 
             }
             
-            /* This is the new Champion Square Image */
             .reveal-icon {
                 display: block;
                 position: absolute;
@@ -256,12 +254,15 @@
                 opacity: 0;
                 animation: iconPop 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
                 z-index: 5;
+                /* Crucial for Fallbacks: Forces any rectangular fallback image into a perfect square focused on the face */
+                object-fit: cover;
+                object-position: top center;
+                background-color: var(--bg-color); /* Hides broken artifacts */
             }
             @keyframes iconPop {
                 to { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
             }
             
-            /* Glow behind the champion square */
             #reveal-screen::before {
                 content: '';
                 position: absolute;
@@ -280,7 +281,7 @@
             }
 
             .reveal-overlay {
-                height: 50%; /* Only need bottom half now */
+                height: 50%; 
                 background: linear-gradient(to top, rgba(0,0,0,1) 0%, transparent 100%);
                 padding: 3rem 1.5rem; 
                 align-items: center; 
@@ -431,7 +432,6 @@
 
     <div id="reveal-screen">
         <img id="reveal-img" class="reveal-splash" src="" alt="">
-        
         <img id="reveal-icon" class="reveal-icon" src="" alt="">
         
         <div class="reveal-overlay">
@@ -464,7 +464,6 @@
     </div>
 
     <script>
-        // --- SIDE MENU LOGIC ---
         function openMenu() {
             document.getElementById('side-menu').classList.add('active');
             document.getElementById('side-menu-overlay').classList.add('active');
@@ -475,7 +474,6 @@
             document.getElementById('side-menu-overlay').classList.remove('active');
         }
 
-        // --- 1. FIREBASE CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyAfLuaBub2hnDz3o4bpy6g7jJWGJhUC_X4",
             authDomain: "challenger-focus-89bae.firebaseapp.com",
@@ -535,7 +533,6 @@
             }
         }
 
-        // --- 3. DATA AND HELPERS ---
         const championData = {
             'Top': { rarity: 'Common', champs: ['Zaahen', 'Aatrox', 'Ambessa', 'Camille', 'Chogath', 'Darius', 'DrMundo', 'Fiora', 'Gangplank', 'Garen', 'Gnar', 'Gwen', 'Illaoi', 'Irelia', 'Jax', 'Jayce', 'KSante', 'Kayle', 'Kennen', 'Kled', 'Malphite', 'Maokai', 'Mordekaiser', 'Nasus', 'Olaf', 'Ornn', 'Pantheon', 'Poppy', 'Quinn', 'Renekton', 'Riven', 'Rumble', 'Sett', 'Shen', 'Singed', 'Sion', 'TahmKench', 'Teemo', 'Trundle', 'Tryndamere', 'Urgot', 'Volibear', 'Yorick']},
             'Support': { rarity: 'Rare', champs: ['Alistar', 'Bard', 'Blitzcrank', 'Braum', 'Janna', 'Karma', 'Leona', 'Lulu', 'Mel', 'Milio', 'Morgana', 'Nami', 'Nautilus', 'Pyke', 'Rakan', 'Rell', 'Renata', 'Senna', 'Seraphine', 'Sona', 'Soraka', 'Taric', 'Thresh', 'Yuumi', 'Zilean', 'Zyra']},
@@ -574,15 +571,15 @@
         let currentRoleFilter = 'All'; 
         
         let isRunning = false, timerInterval = null, currentSessionSeconds = 0;
+        let sessionStartTime = 0, sessionAccumulated = 0;
+        let currentSkins = [], currentSkinIndex = 0;
         
-        let sessionStartTime = 0;
-        let sessionAccumulated = 0;
-        
-        let currentSkins = [];
-        let currentSkinIndex = 0;
+        // Ensure version fetches safely without rigid caching
         let ddragonVersion = '14.4.1';
-
-        fetch('https://ddragon.leagueoflegends.com/api/versions.json').then(res => res.json()).then(data => { ddragonVersion = data[0]; });
+        fetch('https://ddragon.leagueoflegends.com/api/versions.json', { cache: 'no-cache' })
+            .then(res => res.json())
+            .then(data => { if(data && data.length > 0) ddragonVersion = data[0]; })
+            .catch(e => console.log('DDragon fetch failed, using fallback.', e));
         
         function updateHeaderStats() {
             document.getElementById('total-time-ui').innerText = (totalStudySeconds / 3600).toFixed(2);
@@ -684,9 +681,7 @@
             
             isSummoning = true; 
 
-            if (!isDevMode) {
-                gems--; updateHeaderStats();
-            }
+            if (!isDevMode) { gems--; updateHeaderStats(); }
 
             const orb = document.getElementById('main-orb');
             orb.style.transform = 'scale(2.5)';
@@ -737,7 +732,7 @@
             }, 1000);
         }
 
-        // --- REVEAL FUNCTION ---
+        // --- UPDATED SMART REVEAL FUNCTION ---
         function showReveal(id, role, rarity) {
             const screen = document.getElementById('reveal-screen');
             const img = document.getElementById('reveal-img');
@@ -747,9 +742,25 @@
             const splashUrl = `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${id}_0.jpg`;
             const iconUrl = `https://ddragon.leagueoflegends.com/cdn/${ddragonVersion}/img/champion/${apiName}.png`;
             
-            // Set both images (CSS handles which one is shown based on device)
-            img.src = splashUrl;
-            iconImg.src = iconUrl;
+            // These fallbacks ensure that even custom or unreleased champs display cleanly
+            const loadingFallback = `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${id}_0.jpg`;
+            const ultimateFallback = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/-1.png`;
+
+            // Logic to prevent heavy double downloading on phones
+            if (window.innerWidth <= 768) {
+                img.src = ""; // Stop the massive splash art from downloading to save iPhone memory/network
+                iconImg.src = iconUrl;
+                
+                // If DDragon doesn't have an icon, fallback to the vertical slice, and crop it using CSS
+                iconImg.onerror = function() {
+                    this.onerror = function() { this.src = ultimateFallback; };
+                    this.src = loadingFallback;
+                };
+            } else {
+                img.src = splashUrl;
+                img.onerror = function() { this.src = ultimateFallback; };
+                iconImg.src = ""; // Clear icon
+            }
 
             document.getElementById('reveal-name').innerText = formatChampName(id);
             document.getElementById('reveal-rarity').innerText = `${rarity} // ${role}`;
