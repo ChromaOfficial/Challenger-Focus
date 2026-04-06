@@ -30,6 +30,12 @@
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
         body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--text-main); background-color: var(--bg-color); min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
 
+        /* --- AUTH & TOP RIGHT NAV --- */
+        .top-right-auth { position: absolute; top: 1.5rem; right: 2.5rem; z-index: 10; display: flex; align-items: center; }
+        .profile-btn { cursor: pointer; transition: all 0.3s ease; border-radius: 50%; box-shadow: 0 5px 15px rgba(0,0,0,0.3); border: 2px solid transparent; }
+        .profile-btn:hover { transform: scale(1.1); border-color: var(--prism-3); box-shadow: 0 5px 20px rgba(178, 141, 255, 0.5); }
+        .profile-btn img { width: 42px; height: 42px; border-radius: 50%; display: block; object-fit: cover; }
+
         /* --- DEV BADGE --- */
         #dev-badge { display: none; background: linear-gradient(45deg, #ff4757, #ff6b81); color: white; font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; margin-left: 10px; vertical-align: middle; letter-spacing: 1px; box-shadow: 0 0 10px rgba(255, 71, 87, 0.4); }
 
@@ -49,10 +55,10 @@
         .liquid-glass::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); z-index: 10; }
 
         /* --- LAYOUT --- */
-        .container { width: 90%; max-width: 900px; margin: 2rem auto; padding: 2.5rem; text-align: center; }
+        .container { width: 90%; max-width: 1000px; margin: 2rem auto; padding: 2.5rem; text-align: center; }
         header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2.5rem; margin-top: 1.5rem; margin-bottom: 2rem; width: 90%; max-width: 1000px; border-radius: 100px; }
         h1 { font-weight: 200; letter-spacing: 3px; font-size: 1.5rem; text-transform: uppercase; background: linear-gradient(45deg, var(--prism-1), var(--prism-2), var(--prism-3), var(--prism-4)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .stats { display: flex; gap: 2rem; font-size: 0.95rem; font-weight: 300; color: var(--text-muted); }
+        .stats { display: flex; gap: 2rem; font-size: 0.95rem; font-weight: 300; color: var(--text-muted); margin-left: auto; }
         .stats strong { color: var(--text-main); font-weight: 400; font-size: 1.1rem; margin-left: 0.5rem; }
         .me-icon-container { cursor: help; display: flex; align-items: center; }
         .me-icon { width: 1.2em; height: 1.2em; vertical-align: text-bottom; margin-left: 4px; }
@@ -90,8 +96,16 @@
         @keyframes breathe-timer { 0% { filter: drop-shadow(0 0 15px rgba(255, 126, 179, 0.2)); transform: scale(1); } 100% { filter: drop-shadow(0 0 45px rgba(178, 141, 255, 0.7)); transform: scale(1.02); } }
         .timer-controls { display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; }
 
-        /* --- COLLECTION UI --- */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1.5rem; padding: 1rem 0; }
+        /* --- COLLECTION UI & ROLE FILTER --- */
+        .role-filter { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .role-btn { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 0.6rem 1.2rem; border-radius: 20px; cursor: pointer; transition: 0.3s; font-size: 0.9rem; font-weight: 300; }
+        .role-btn img { width: 18px; height: 18px; filter: grayscale(1) opacity(0.5) invert(1); transition: 0.3s; }
+        .role-btn:hover { background: rgba(255,255,255,0.1); color: var(--text-main); }
+        .role-btn:hover img { opacity: 0.8; }
+        .role-btn.active { background: rgba(178, 141, 255, 0.15); border-color: var(--prism-3); color: var(--text-main); font-weight: 400; box-shadow: 0 0 15px rgba(178, 141, 255, 0.2); }
+        .role-btn.active img { filter: grayscale(0) opacity(1) invert(0); drop-shadow: 0 0 5px var(--prism-3); }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1.5rem; padding: 1rem 0; }
         .champ-card { position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 1 / 1.5; display: flex; align-items: flex-end; justify-content: center; background: rgba(0, 0, 0, 0.5); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 5px 15px rgba(0,0,0,0.5); transition: 0.3s ease; will-change: transform; cursor: pointer; }
         .champ-card:hover { transform: translateY(-5px); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2), 0 10px 25px rgba(0,0,0,0.6); z-index: 2; }
         .champ-card img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transition: 0.3s ease; }
@@ -100,16 +114,21 @@
         .champ-card.locked .name-tag { color: var(--text-muted); }
         .locked-status { display: block; font-size: 0.6rem; color: var(--prism-2); margin-top: 3px; letter-spacing: 2px; font-weight: 600; }
 
-        /* --- SOPHISTICATED SUMMON PORTAL --- */
+        /* --- BTS "LOVE YOURSELF" SUMMON PORTAL --- */
         #summon-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 100; display: none; flex-direction: column; justify-content: center; align-items: center; opacity: 0; transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1); }
         .summon-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, #101428 0%, #000 70%); z-index: -1; overflow: hidden; }
         .close-summon { position: absolute; top: 2rem; right: 3rem; font-size: 1rem; color: var(--text-muted); cursor: pointer; background: none; border: none; letter-spacing: 1px; z-index: 10; }
-        .summon-orb-container { position: relative; width: 300px; height: 300px; display: flex; justify-content: center; align-items: center; }
-        .summon-orb { width: 120px; height: 120px; border-radius: 50%; background: #fff; box-shadow: 0 0 60px rgba(110, 188, 240, 0.8), 0 0 100px rgba(178, 141, 255, 0.5); cursor: pointer; transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1); position: relative; z-index: 5; }
-        .summon-orb:hover { transform: scale(1.1); box-shadow: 0 0 80px #fff, 0 0 150px var(--prism-3); }
-        .orb-rings { position: absolute; width: 100%; height: 100%; border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; animation: rotateRing 10s linear infinite; }
-        .orb-rings:nth-child(2) { width: 80%; height: 80%; animation-duration: 7s; animation-direction: reverse; }
-        @keyframes rotateRing { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        .ly-bloom-container { position: relative; width: 280px; height: 280px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 1.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .ly-ring { position: absolute; width: 100%; height: 100%; border-radius: 40% 60% 60% 40% / 50% 50% 40% 60%; background: linear-gradient(45deg, var(--prism-1), var(--prism-2), var(--prism-3), var(--prism-4)); opacity: 0.4; animation: lySpin 8s linear infinite; filter: blur(4px); mix-blend-mode: screen; transition: all 0.5s ease; }
+        .ly-ring:nth-child(2) { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; animation-direction: reverse; animation-duration: 12s; opacity: 0.5; background: linear-gradient(135deg, var(--prism-2), var(--prism-4)); }
+        .ly-ring:nth-child(3) { border-radius: 50% 50% 60% 40% / 40% 60% 50% 50%; animation-duration: 10s; background: linear-gradient(225deg, var(--prism-3), var(--prism-1)); opacity: 0.4; }
+        .ly-center { position: absolute; width: 60px; height: 60px; background: #fff; border-radius: 50%; box-shadow: 0 0 40px #fff, 0 0 80px var(--prism-2); z-index: 10; display: flex; justify-content: center; align-items: center; color: var(--bg-color); transition: all 0.5s ease; }
+        
+        .ly-bloom-container:hover .ly-center { transform: scale(1.3); box-shadow: 0 0 60px #fff, 0 0 120px var(--prism-3); }
+        .ly-bloom-container:hover .ly-ring { filter: blur(6px) brightness(1.2); opacity: 0.7; }
+        
+        @keyframes lySpin { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.05); } 100% { transform: rotate(360deg) scale(1); } }
 
         /* --- CINEMATIC REVEAL --- */
         #reveal-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 500; display: none; opacity: 0; transition: opacity 1.5s ease; overflow: hidden; background: #000; }
@@ -145,6 +164,7 @@
             .lore-section { flex: 1; padding: 1.5rem; }
             .reveal-name { font-size: 2.5rem; }
             .reveal-overlay { padding: 2rem; }
+            .top-right-auth { top: 1rem; right: 1rem; }
         }
     </style>
 </head>
@@ -166,18 +186,16 @@
         <path class="wave wave5" d="M 80,-10 C 100,50 40,60 20,110" stroke="url(#prism)" />
     </svg>
 
+    <div class="top-right-auth">
+        <button id="login-btn" class="modern-btn" style="min-width: 120px; padding: 0.6rem 1.2rem; font-size: 0.75rem;" onclick="login()"><span>Sync Google</span></button>
+        <div id="user-pill" class="profile-btn" style="display: none;" onclick="logout()" title="Log Out">
+            <img id="user-photo" src="" alt="Profile">
+        </div>
+    </div>
+
     <header class="liquid-glass">
         <h1>Challenger Focus <span id="dev-badge">DEV</span></h1>
         
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <button id="login-btn" class="modern-btn" style="min-width: 120px; padding: 0.5rem 1rem; font-size: 0.7rem;" onclick="login()"><span>Sync Google</span></button>
-            <div id="user-pill" style="display: none; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
-                <img id="user-photo" src="" style="width: 24px; height: 24px; border-radius: 50%;">
-                <span id="user-name" style="font-size: 0.8rem;"></span>
-                <span style="opacity:0.3; cursor:pointer; margin-left: 5px;" onclick="logout()">✕</span>
-            </div>
-        </div>
-
         <div class="stats">
             <div>Focus: <strong id="total-time-ui">0.00</strong> hrs</div>
             <div class="me-icon-container" onclick="tryDevMode()">
@@ -203,7 +221,28 @@
                 1 Mythic Essence <img src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/currency/tokens/mythic_essence.png" class="me-icon" alt="ME"> awarded per 15 minutes.
             </p>
         </div>
-        <div id="collection-view" class="view"><div class="grid" id="collection-grid"></div></div>
+        
+        <div id="collection-view" class="view">
+            <div class="role-filter">
+                <button class="role-btn active" onclick="filterRole('All', this)">All Roles</button>
+                <button class="role-btn" onclick="filterRole('Top', this)">
+                    <img src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-clash/global/default/assets/images/position-selector/positions/icon-position-top.png" alt="Top"> Top
+                </button>
+                <button class="role-btn" onclick="filterRole('Jungle', this)">
+                    <img src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-clash/global/default/assets/images/position-selector/positions/icon-position-jungle.png" alt="Jungle"> Jungle
+                </button>
+                <button class="role-btn" onclick="filterRole('Mid', this)">
+                    <img src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-clash/global/default/assets/images/position-selector/positions/icon-position-middle.png" alt="Mid"> Mid
+                </button>
+                <button class="role-btn" onclick="filterRole('ADC', this)">
+                    <img src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-clash/global/default/assets/images/position-selector/positions/icon-position-bottom.png" alt="ADC"> ADC
+                </button>
+                <button class="role-btn" onclick="filterRole('Support', this)">
+                    <img src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-clash/global/default/assets/images/position-selector/positions/icon-position-utility.png" alt="Support"> Support
+                </button>
+            </div>
+            <div class="grid" id="collection-grid"></div>
+        </div>
     </div>
 
     <button class="summon-fab" onclick="openSummonScreen()"><span>✦</span> Enter Summon Portal</button>
@@ -211,12 +250,15 @@
     <div id="summon-screen">
         <div class="summon-bg" id="summon-canvas"></div>
         <button class="close-summon" onclick="closeSummonScreen()">✕ CLOSE</button>
-        <div class="summon-orb-container">
-            <div class="orb-rings"></div>
-            <div class="orb-rings"></div>
-            <div class="summon-orb" id="main-orb" onclick="executeSummon()"></div>
+        
+        <div class="ly-bloom-container" id="main-orb" onclick="executeSummon()">
+            <div class="ly-ring"></div>
+            <div class="ly-ring"></div>
+            <div class="ly-ring"></div>
+            <div class="ly-center">✦</div>
         </div>
-        <div class="summon-text" style="margin-top: 3rem; letter-spacing: 5px; font-weight: 200;">TOUCH TO MANIFEST</div>
+
+        <div class="summon-text" style="margin-top: 4rem; letter-spacing: 5px; font-weight: 200;">TOUCH TO MANIFEST</div>
     </div>
 
     <div id="reveal-screen">
@@ -224,7 +266,7 @@
         <div class="reveal-overlay">
             <div id="reveal-rarity" class="reveal-rarity">Legendary</div>
             <div id="reveal-name" class="reveal-name">Jinx</div>
-            <button class="modern-btn primary reveal-btn" style="opacity: 0;" onclick="closeReveal()"><span>Accept Identity</span></button>
+            <button class="modern-btn primary reveal-btn" style="opacity: 0;" onclick="closeReveal()"><span>Accept</span></button>
         </div>
     </div>
 
@@ -261,7 +303,6 @@
             appId: "1:110057760971:web:114419fb2a579ae974134e"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -269,7 +310,6 @@
         
         let currentUser = null;
 
-        // --- 2. AUTHENTICATION & SYNCING LOGIC ---
         function login() { auth.signInWithPopup(provider).catch(err => alert("Login Failed: " + err.message)); }
         function logout() { auth.signOut().then(() => location.reload()); }
 
@@ -277,11 +317,9 @@
             if (user) {
                 currentUser = user;
                 document.getElementById('login-btn').style.display = 'none';
-                document.getElementById('user-pill').style.display = 'flex';
-                document.getElementById('user-name').innerText = user.displayName.split(' ')[0];
+                document.getElementById('user-pill').style.display = 'block';
                 document.getElementById('user-photo').src = user.photoURL;
                 
-                // Pull data from Firestore
                 const doc = await db.collection('users').doc(user.uid).get();
                 if (doc.exists) {
                     const data = doc.data();
@@ -291,12 +329,15 @@
                     unlockedChamps = data.unlockedChamps || unlockedChamps;
                 }
             }
-            // Always update UI after checking state
             updateHeaderStats();
             renderCollection();
         });
 
         async function syncData() {
+            if (isDevMode) {
+                console.log("Dev Mode Active: Cloud saving disabled.");
+                return; 
+            }
             if (currentUser) {
                 await db.collection('users').doc(currentUser.uid).set({
                     gems: gems,
@@ -305,7 +346,6 @@
                     unlockedChamps: unlockedChamps
                 }, { merge: true });
             } else {
-                // Fallback to local storage if not logged in
                 localStorage.setItem('gems', gems);
                 localStorage.setItem('totalStudySeconds', totalStudySeconds);
                 localStorage.setItem('unconvertedSeconds', unconvertedSeconds);
@@ -313,22 +353,49 @@
             }
         }
 
-
-        // --- 3. ORIGINAL DATA & GAME LOGIC ---
+        // --- 3. DATA AND HELPERS ---
         const championData = {
-            'Top': { rarity: 'Common', champs: ['Aatrox', 'Ambessa', 'Camille', 'Chogath', 'Darius', 'DrMundo', 'Fiora', 'Gangplank', 'Garen', 'Gnar', 'Gwen', 'Illaoi', 'Irelia', 'Jax', 'Jayce', 'KSante', 'Kayle', 'Kennen', 'Kled', 'Malphite', 'Maokai', 'Mordekaiser', 'Nasus', 'Olaf', 'Ornn', 'Pantheon', 'Poppy', 'Quinn', 'Renekton', 'Riven', 'Rumble', 'Sett', 'Shen', 'Singed', 'Sion', 'TahmKench', 'Teemo', 'Trundle', 'Tryndamere', 'Urgot', 'Volibear', 'Yorick']},
+            'Top': { rarity: 'Common', champs: ['Zaahen', 'Aatrox', 'Ambessa', 'Camille', 'Chogath', 'Darius', 'DrMundo', 'Fiora', 'Gangplank', 'Garen', 'Gnar', 'Gwen', 'Illaoi', 'Irelia', 'Jax', 'Jayce', 'KSante', 'Kayle', 'Kennen', 'Kled', 'Malphite', 'Maokai', 'Mordekaiser', 'Nasus', 'Olaf', 'Ornn', 'Pantheon', 'Poppy', 'Quinn', 'Renekton', 'Riven', 'Rumble', 'Sett', 'Shen', 'Singed', 'Sion', 'TahmKench', 'Teemo', 'Trundle', 'Tryndamere', 'Urgot', 'Volibear', 'Yorick']},
             'Support': { rarity: 'Rare', champs: ['Alistar', 'Bard', 'Blitzcrank', 'Braum', 'Janna', 'Karma', 'Leona', 'Lulu', 'Mel', 'Milio', 'Morgana', 'Nami', 'Nautilus', 'Pyke', 'Rakan', 'Rell', 'Renata', 'Senna', 'Seraphine', 'Sona', 'Soraka', 'Taric', 'Thresh', 'Yuumi', 'Zilean', 'Zyra']},
             'Jungle': { rarity: 'Epic', champs: ['Amumu', 'Belveth', 'Briar', 'Diana', 'Ekko', 'Elise', 'Evelynn', 'Fiddlesticks', 'Gragas', 'Graves', 'Hecarim', 'Ivern', 'JarvanIV', 'Karthus', 'Kayn', 'Khazix', 'Kindred', 'LeeSin', 'Lillia', 'MasterYi', 'MonkeyKing', 'Nidalee', 'Nocturne', 'Nunu', 'Rammus', 'RekSai', 'Rengar', 'Sejuani', 'Shaco', 'Shyvana', 'Skarner', 'Talon', 'Udyr', 'Vi', 'Viego', 'Warwick', 'XinZhao', 'Zac']},
             'Mid': { rarity: 'Mythic', champs: ['Ahri', 'Akali', 'Akshan', 'Anivia', 'Annie', 'AurelionSol', 'Aurora', 'Azir', 'Brand', 'Cassiopeia', 'Corki', 'Fizz', 'Galio', 'Heimerdinger', 'Hwei', 'Kassadin', 'Katarina', 'Leblanc', 'Lissandra', 'Lux', 'Malzahar', 'Naafiri', 'Neeko', 'Orianna', 'Qiyana', 'Ryze', 'Swain', 'Sylas', 'Syndra', 'Taliyah', 'TwistedFate', 'Veigar', 'Velkoz', 'Vex', 'Viktor', 'Vladimir', 'Xerath', 'Yasuo', 'Yone', 'Zed', 'Ziggs', 'Zoe']},
-            'ADC': { rarity: 'Legendary', champs: ['Aphelios', 'Ashe', 'Caitlyn', 'Draven', 'Ezreal', 'Jhin', 'Jinx', 'Kaisa', 'Kalista', 'KogMaw', 'Lucian', 'MissFortune', 'Nilah', 'Samira', 'Sivir', 'Smolder', 'Tristana', 'Twitch', 'Varus', 'Vayne', 'Xayah', 'Zeri']}
+            'ADC': { rarity: 'Legendary', champs: ['Aphelios', 'Ashe', 'Caitlyn', 'Draven', 'Ezreal', 'Jhin', 'Jinx', 'Kaisa', 'Kalista', 'KogMaw', 'Lucian', 'MissFortune', 'Nilah', 'Samira', 'Sivir', 'Smolder', 'Tristana', 'Twitch', 'Varus', 'Vayne', 'Xayah', 'Yunara', 'Zeri']}
         };
 
+        function formatChampName(id) {
+            const specials = {
+                'AurelionSol': 'Aurelion Sol', 'Chogath': "Cho'Gath", 'DrMundo': 'Dr. Mundo', 
+                'JarvanIV': 'Jarvan IV', 'Kaisa': "Kai'Sa", 'Khazix': "Kha'Zix", 'KogMaw': "Kog'Maw",
+                'LeeSin': 'Lee Sin', 'MasterYi': 'Master Yi', 'MissFortune': 'Miss Fortune', 
+                'MonkeyKing': 'Wukong', 'RekSai': "Rek'Sai", 'Renata': 'Renata Glasc',
+                'TahmKench': 'Tahm Kench', 'TwistedFate': 'Twisted Fate', 'XinZhao': 'Xin Zhao', 
+                'Velkoz': "Vel'Koz", 'Belveth': "Bel'Veth", 'KSante': "K'Sante", 
+                'Leblanc': 'LeBlanc', 'Nunu': 'Nunu & Willump'
+            };
+            if (specials[id]) return specials[id];
+            return id.replace(/([A-Z])/g, ' $1').trim();
+        }
+
+        function getApiName(id) {
+            if(id === 'Wukong') return 'MonkeyKing';
+            if(id === 'Renata Glasc') return 'Renata';
+            if(id === 'Belveth') return 'Belveth'; 
+            return id;
+        }
+
         let isDevMode = false;
+        let isSummoning = false; 
         let gems = parseInt(localStorage.getItem('gems')) || 0;
         let totalStudySeconds = parseInt(localStorage.getItem('totalStudySeconds')) || 0;
         let unconvertedSeconds = parseInt(localStorage.getItem('unconvertedSeconds')) || 0;
         let unlockedChamps = JSON.parse(localStorage.getItem('unlockedChamps')) || [];
-        let isRunning = false, timerInterval = null, currentSessionSeconds = 0, ddragonVersion = '14.4.1';
+        let currentRoleFilter = 'All'; // New filter state
+        
+        let isRunning = false, timerInterval = null, currentSessionSeconds = 0;
+        
+        let currentSkins = [];
+        let currentSkinIndex = 0;
+        let ddragonVersion = '14.4.1';
 
         fetch('https://ddragon.leagueoflegends.com/api/versions.json').then(res => res.json()).then(data => { ddragonVersion = data[0]; });
         
@@ -343,9 +410,8 @@
                 isDevMode = true;
                 document.getElementById('dev-badge').style.display = 'inline-block';
                 document.getElementById('cost-info').style.color = '#ff4757';
-                document.getElementById('cost-info').innerHTML = 'DEVELOPER OVERRIDE: Unlimited Essences Active.';
+                document.getElementById('cost-info').innerHTML = 'DEVELOPER OVERRIDE: Sandbox Mode. Saves are disabled.';
                 updateHeaderStats();
-                alert("Developer Mode Manifested.");
             }
         }
 
@@ -370,7 +436,7 @@
             
             updateTimerDisplay(); 
             updateHeaderStats();
-            syncData(); // Save to Firebase/Local
+            syncData(); 
         }
 
         function updateTimerDisplay() {
@@ -391,16 +457,31 @@
         }
 
         function executeSummon() {
+            if (isSummoning) return;
+            
+            let allOwned = true;
+            for(const r in championData) {
+                if (championData[r].champs.some(c => !unlockedChamps.includes(c))) {
+                    allOwned = false;
+                    break;
+                }
+            }
+            if (allOwned) {
+                alert("You have already manifested all entities!");
+                return;
+            }
+
             if (!isDevMode && gems < 1) { alert("Insufficient Mythic Essence."); return; }
             
+            isSummoning = true; 
+
             if (!isDevMode) {
                 gems--; updateHeaderStats();
             }
 
             const orb = document.getElementById('main-orb');
             orb.style.transform = 'scale(2.5)';
-            orb.style.filter = 'brightness(5)';
-            orb.style.boxShadow = '0 0 200px #fff';
+            orb.style.filter = 'brightness(5) hue-rotate(90deg)';
 
             setTimeout(() => {
                 const flash = document.getElementById('flash-overlay');
@@ -408,22 +489,41 @@
                 
                 setTimeout(() => {
                     const roll = Math.random();
-                    let role = roll < 0.4 ? 'Top' : roll < 0.7 ? 'Support' : roll < 0.9 ? 'Jungle' : roll < 0.98 ? 'Mid' : 'ADC';
-                    const pool = championData[role].champs;
-                    const champ = pool[Math.floor(Math.random() * pool.length)];
+                    let targetRole = roll < 0.4 ? 'Top' : roll < 0.7 ? 'Support' : roll < 0.9 ? 'Jungle' : roll < 0.98 ? 'Mid' : 'ADC';
+                    
+                    let availableInTargetRole = championData[targetRole].champs.filter(c => !unlockedChamps.includes(c));
+                    let champPulled, rolePulled, rarityPulled;
 
-                    if (!unlockedChamps.includes(champ)) {
-                        unlockedChamps.push(champ);
-                        renderCollection();
+                    if (availableInTargetRole.length === 0) {
+                        const allAvailable = [];
+                        for(const r in championData) {
+                           championData[r].champs.forEach(c => {
+                               if(!unlockedChamps.includes(c)) {
+                                   allAvailable.push({ c: c, r: r, rarity: championData[r].rarity });
+                               }
+                           });
+                        }
+                        const randomPick = allAvailable[Math.floor(Math.random() * allAvailable.length)];
+                        champPulled = randomPick.c;
+                        rolePulled = randomPick.r;
+                        rarityPulled = randomPick.rarity;
+                    } else {
+                        champPulled = availableInTargetRole[Math.floor(Math.random() * availableInTargetRole.length)];
+                        rolePulled = targetRole;
+                        rarityPulled = championData[targetRole].rarity;
                     }
 
-                    showReveal(champ, role, championData[role].rarity);
+                    unlockedChamps.push(champPulled);
+                    renderCollection();
+                    syncData(); 
+
+                    showReveal(champPulled, rolePulled, rarityPulled);
                     
-                    orb.style.transform = ''; orb.style.filter = ''; orb.style.boxShadow = '';
+                    orb.style.transform = ''; orb.style.filter = '';
                     flash.style.opacity = '0';
                     closeSummonScreen();
                     
-                    syncData(); // Save new champion to Firebase/Local
+                    isSummoning = false; 
                 }, 600);
             }, 1000);
         }
@@ -432,7 +532,7 @@
             const screen = document.getElementById('reveal-screen');
             const img = document.getElementById('reveal-img');
             img.src = `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${id}_0.jpg`;
-            document.getElementById('reveal-name').innerText = id;
+            document.getElementById('reveal-name').innerText = formatChampName(id);
             document.getElementById('reveal-rarity').innerText = `${rarity} // ${role}`;
             
             screen.style.display = 'block';
@@ -445,39 +545,122 @@
             setTimeout(() => { screen.style.display = 'none'; screen.classList.remove('reveal-active'); }, 1500);
         }
 
+        // --- ROLE FILTER FUNCTION ---
+        function filterRole(role, btnElement) {
+            currentRoleFilter = role;
+            document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
+            renderCollection();
+        }
+
         function renderCollection() {
             const grid = document.getElementById('collection-grid'); grid.innerHTML = '';
-            const all = []; Object.keys(championData).forEach(r => championData[r].champs.forEach(c => all.push({id: c, role: r, rarity: championData[r].rarity})));
+            const all = []; 
+            
+            Object.keys(championData).forEach(r => {
+                if (currentRoleFilter === 'All' || currentRoleFilter === r) {
+                    championData[r].champs.forEach(c => all.push({id: c, role: r, rarity: championData[r].rarity}));
+                }
+            });
+            
             all.sort((a,b) => a.id.localeCompare(b.id)).forEach(c => {
                 const unlocked = unlockedChamps.includes(c.id);
                 const card = document.createElement('div');
                 card.className = `champ-card ${unlocked ? '' : 'locked'}`;
+                
                 card.onclick = () => openCodex(c.id);
-                card.innerHTML = `<img src="https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${c.id}_0.jpg"><div class="name-tag">${c.id}${unlocked ? '' : '<span class="locked-status">LOCKED</span>'}</div>`;
+
+                card.innerHTML = `<img src="https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${c.id}_0.jpg" onerror="this.src='https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/-1.png'"><div class="name-tag">${formatChampName(c.id)}${unlocked ? '' : '<span class="locked-status">LOCKED</span>'}</div>`;
                 grid.appendChild(card);
             });
         }
 
+        // --- 4. CODEX CAROUSEL LOGIC ---
         async function openCodex(id) {
             const m = document.getElementById('codex-modal'); m.style.display = 'flex';
+            const imgEl = document.getElementById('carousel-img');
+            const spinner = document.getElementById('carousel-loading');
+            
+            imgEl.style.opacity = 0;
+            spinner.style.display = 'block';
+            document.getElementById('carousel-skin-name').innerText = "Loading Skins...";
+            document.getElementById('lore-name').innerText = "Loading...";
+            document.getElementById('lore-title').innerText = "";
+            document.getElementById('lore-body').innerText = "";
+
+            const apiName = getApiName(id);
+
             try {
-                const res = await fetch(`https://ddragon.leagueoflegends.com/cdn/${ddragonVersion}/data/en_US/champion/${id}.json`);
-                const data = (await res.json()).data[id];
-                document.getElementById('lore-name').innerText = data.name;
-                document.getElementById('lore-title').innerText = data.title;
-                document.getElementById('lore-body').innerText = data.lore;
-                document.getElementById('carousel-img').src = `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${id}_0.jpg`;
-            } catch(e) { console.error(e); }
+                const res = await fetch(`https://ddragon.leagueoflegends.com/cdn/${ddragonVersion}/data/en_US/champion/${apiName}.json`);
+                if(!res.ok) throw new Error("Champion not found in API");
+                
+                const data = await res.json();
+                const champData = data.data[apiName];
+
+                document.getElementById('lore-name').innerText = champData.name;
+                document.getElementById('lore-title').innerText = champData.title;
+                document.getElementById('lore-body').innerText = champData.lore;
+
+                currentSkins = champData.skins
+                    .filter(skin => !skin.name.includes('(') && !skin.name.includes(')'))
+                    .map(skin => ({
+                        name: skin.name === 'default' ? champData.name : skin.name,
+                        url: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${apiName}_${skin.num}.jpg`
+                    }));
+                currentSkinIndex = 0;
+                updateCarouselUI();
+
+            } catch (err) {
+                // Fallback for custom champions (Zaahen, Yunara)
+                document.getElementById('lore-name').innerText = formatChampName(id);
+                document.getElementById('lore-title').innerText = "The New Challenger";
+                document.getElementById('lore-body').innerText = "Data regarding this champion is currently classified or unavailable in standard databanks. They have yet to fully reveal their origins to the realm.";
+                
+                currentSkins = [{
+                    name: formatChampName(id),
+                    url: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${id}_0.jpg`
+                }];
+                currentSkinIndex = 0;
+                updateCarouselUI();
+            }
+        }
+
+        function updateCarouselUI() {
+            const imgEl = document.getElementById('carousel-img');
+            const spinner = document.getElementById('carousel-loading');
+            const nameEl = document.getElementById('carousel-skin-name');
+
+            if(currentSkins.length === 0) return;
+
+            imgEl.style.opacity = 0;
+            setTimeout(() => {
+                imgEl.src = currentSkins[currentSkinIndex].url;
+                imgEl.onerror = function() { this.src = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/-1.png'; };
+                nameEl.innerText = currentSkins[currentSkinIndex].name;
+                spinner.style.display = 'none';
+            }, 200);
+        }
+
+        function nextSkin() {
+            if(currentSkins.length <= 1) return;
+            currentSkinIndex = (currentSkinIndex + 1) % currentSkins.length;
+            updateCarouselUI();
+        }
+
+        function prevSkin() {
+            if(currentSkins.length <= 1) return;
+            currentSkinIndex = (currentSkinIndex - 1 + currentSkins.length) % currentSkins.length;
+            updateCarouselUI();
         }
 
         function closeCodexModal() { document.getElementById('codex-modal').style.display = 'none'; }
+        
         function switchTab(btn, id) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(id + '-view').classList.add('active'); btn.classList.add('active');
         }
 
-        // Initialize state on load
         updateHeaderStats(); renderCollection();
     </script>
 </body>
