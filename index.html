@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenger Focus</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        /* --- CORE THEME & TYPOGRAPHY --- */
+        :root {
+            --bg-color: #070913;
+            --text-main: #f5f5f7;
+            --text-muted: #a1a1a6;
+            
+            --prism-1: #ffb88c; 
+            --prism-2: #ff7eb3; 
+            --prism-3: #b28dff; 
+            --prism-4: #6ebcf0; 
+            
+            --glass-bg: rgba(20, 22, 35, 0.35);
+            --glass-border-light: rgba(255, 255, 255, 0.15);
+            --glass-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+            --liquid-inner-shadow: inset 0 0 0 1px var(--glass-border-light), inset 0 2px 20px rgba(255,255,255,0.05);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--text-main); background-color: var(--bg-color); min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+
+        /* --- DEV BADGE --- */
+        #dev-badge { display: none; background: linear-gradient(45deg, #ff4757, #ff6b81); color: white; font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; margin-left: 10px; vertical-align: middle; letter-spacing: 1px; box-shadow: 0 0 10px rgba(255, 71, 87, 0.4); }
+
+        /* --- BACKGROUND WEAVING LINES --- */
+        .bg-lines { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 1; }
+        .wave { fill: none; stroke-width: 3.5; stroke-linecap: round; stroke-dasharray: 250 1500; animation: weaveFlow linear infinite; opacity: 0; will-change: stroke-dashoffset, opacity; }
+        .wave1 { animation-duration: 20s; animation-delay: 0s; }
+        .wave2 { animation-duration: 25s; animation-delay: -5s; stroke-width: 2.5; }
+        .wave3 { animation-duration: 18s; animation-delay: -12s; }
+        .wave4 { animation-duration: 22s; animation-delay: -8s; stroke-width: 4; }
+        .wave5 { animation-duration: 15s; animation-delay: -2s; }
+
+        @keyframes weaveFlow { 0% { stroke-dashoffset: 1750; opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.8; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+
+        /* --- APPLE LIQUID GLASS --- */
+        .liquid-glass { background: var(--glass-bg); backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%); box-shadow: var(--glass-shadow), var(--liquid-inner-shadow); border-radius: 24px; position: relative; overflow: hidden; }
+        .liquid-glass::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); z-index: 10; }
+
+        /* --- LAYOUT --- */
+        .container { width: 90%; max-width: 900px; margin: 2rem auto; padding: 2.5rem; text-align: center; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2.5rem; margin-top: 1.5rem; margin-bottom: 2rem; width: 90%; max-width: 1000px; border-radius: 100px; }
+        h1 { font-weight: 200; letter-spacing: 3px; font-size: 1.5rem; text-transform: uppercase; background: linear-gradient(45deg, var(--prism-1), var(--prism-2), var(--prism-3), var(--prism-4)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stats { display: flex; gap: 2rem; font-size: 0.95rem; font-weight: 300; color: var(--text-muted); }
+        .stats strong { color: var(--text-main); font-weight: 400; font-size: 1.1rem; margin-left: 0.5rem; }
+        .me-icon-container { cursor: help; display: flex; align-items: center; }
+        .me-icon { width: 1.2em; height: 1.2em; vertical-align: text-bottom; margin-left: 4px; }
+
+        /* --- NAVIGATION --- */
+        .tabs { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+        button.nav-btn { background: transparent; border: none; color: var(--text-muted); font-size: 1rem; font-weight: 300; padding: 0.5rem 1rem; cursor: pointer; transition: 0.3s ease; position: relative; }
+        button.nav-btn:hover { color: var(--text-main); }
+        button.nav-btn.active { color: var(--text-main); font-weight: 400; }
+        button.nav-btn.active::after { content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); width: 20px; height: 2px; background: var(--prism-3); border-radius: 2px; box-shadow: 0 0 10px var(--prism-3); }
+
+        .summon-fab { position: fixed; bottom: 2rem; right: 2rem; background: linear-gradient(135deg, rgba(255, 126, 179, 0.2), rgba(110, 188, 240, 0.2)); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 50px; padding: 1rem 2rem; font-size: 1rem; font-weight: 300; letter-spacing: 1px; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: all 0.3s ease; z-index: 50; display: flex; align-items: center; gap: 10px; }
+        .summon-fab:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.6); border-color: rgba(255,255,255,0.4); }
+
+        .view { display: none; animation: scaleIn 0.4s ease forwards; opacity: 0; transform: scale(0.98); }
+        .view.active { display: block; }
+        @keyframes scaleIn { to { opacity: 1; transform: scale(1); } }
+
+        /* --- MODERN PREMIUM BUTTONS --- */
+        .modern-btn { position: relative; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-main); padding: 1.2rem 3.5rem; border-radius: 50px; font-size: 0.95rem; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); overflow: hidden; backdrop-filter: blur(10px); min-width: 220px; }
+        .modern-btn::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(45deg, var(--prism-1), var(--prism-2), var(--prism-3), var(--prism-4)); z-index: 0; opacity: 0; transition: opacity 0.4s ease; }
+        .modern-btn span { position: relative; z-index: 2; transition: all 0.3s ease; }
+        .modern-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.3); }
+        .modern-btn.primary:hover::before { opacity: 0.15; }
+        .modern-btn.primary.active-glow { border-color: var(--prism-2); box-shadow: 0 0 25px rgba(255, 126, 179, 0.4), inset 0 0 15px rgba(255, 126, 179, 0.2); background: rgba(0,0,0,0.2); }
+        .modern-btn.primary.active-glow span { color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+        .modern-btn.primary.active-glow::before { opacity: 0.2; }
+        .modern-btn.secondary { opacity: 0.4; pointer-events: none; border-color: rgba(255,255,255,0.05); }
+        .modern-btn.secondary.visible { opacity: 1; pointer-events: auto; border-color: rgba(255,255,255,0.15); }
+        .modern-btn.secondary.visible:hover { background: rgba(255,255,255,0.05); border-color: white; }
+
+        /* --- ADVANCED TIMER UI --- */
+        .timer-display { font-size: 7.5rem; font-weight: 200; letter-spacing: 5px; margin: 3.5rem 0; font-variant-numeric: tabular-nums; background: linear-gradient(45deg, var(--prism-1), var(--prism-2), var(--prism-3), var(--prism-4)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px rgba(255, 126, 179, 0.2)); transition: all 0.5s ease; }
+        .timer-running { animation: breathe-timer 3s infinite alternate ease-in-out; }
+        @keyframes breathe-timer { 0% { filter: drop-shadow(0 0 15px rgba(255, 126, 179, 0.2)); transform: scale(1); } 100% { filter: drop-shadow(0 0 45px rgba(178, 141, 255, 0.7)); transform: scale(1.02); } }
+        .timer-controls { display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; }
+
+        /* --- COLLECTION UI --- */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1.5rem; padding: 1rem 0; }
+        .champ-card { position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 1 / 1.5; display: flex; align-items: flex-end; justify-content: center; background: rgba(0, 0, 0, 0.5); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 5px 15px rgba(0,0,0,0.5); transition: 0.3s ease; will-change: transform; cursor: pointer; }
+        .champ-card:hover { transform: translateY(-5px); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2), 0 10px 25px rgba(0,0,0,0.6); z-index: 2; }
+        .champ-card img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transition: 0.3s ease; }
+        .champ-card.locked img { filter: brightness(0.25) grayscale(0.9); opacity: 0.8; }
+        .champ-card .name-tag { position: relative; z-index: 2; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); width: 100%; padding: 2rem 0.5rem 0.8rem; text-align: center; font-size: 0.8rem; letter-spacing: 1px; font-weight: 400; }
+        .champ-card.locked .name-tag { color: var(--text-muted); }
+        .locked-status { display: block; font-size: 0.6rem; color: var(--prism-2); margin-top: 3px; letter-spacing: 2px; font-weight: 600; }
+
+        /* --- SOPHISTICATED SUMMON PORTAL --- */
+        #summon-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 100; display: none; flex-direction: column; justify-content: center; align-items: center; opacity: 0; transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1); }
+        .summon-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, #101428 0%, #000 70%); z-index: -1; overflow: hidden; }
+        .close-summon { position: absolute; top: 2rem; right: 3rem; font-size: 1rem; color: var(--text-muted); cursor: pointer; background: none; border: none; letter-spacing: 1px; z-index: 10; }
+        .summon-orb-container { position: relative; width: 300px; height: 300px; display: flex; justify-content: center; align-items: center; }
+        .summon-orb { width: 120px; height: 120px; border-radius: 50%; background: #fff; box-shadow: 0 0 60px rgba(110, 188, 240, 0.8), 0 0 100px rgba(178, 141, 255, 0.5); cursor: pointer; transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1); position: relative; z-index: 5; }
+        .summon-orb:hover { transform: scale(1.1); box-shadow: 0 0 80px #fff, 0 0 150px var(--prism-3); }
+        .orb-rings { position: absolute; width: 100%; height: 100%; border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; animation: rotateRing 10s linear infinite; }
+        .orb-rings:nth-child(2) { width: 80%; height: 80%; animation-duration: 7s; animation-direction: reverse; }
+        @keyframes rotateRing { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* --- CINEMATIC REVEAL --- */
+        #reveal-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 500; display: none; opacity: 0; transition: opacity 1.5s ease; overflow: hidden; background: #000; }
+        .reveal-splash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.7); transform: scale(1.1); animation: zoomOut 8s ease forwards; }
+        @keyframes zoomOut { to { transform: scale(1); } }
+        .reveal-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%); display: flex; flex-direction: column; justify-content: flex-end; padding: 5rem; align-items: flex-start; }
+        .reveal-rarity { font-size: 1rem; letter-spacing: 5px; text-transform: uppercase; color: var(--prism-3); margin-bottom: 1rem; opacity: 0; transform: translateY(20px); }
+        .reveal-name { font-size: 5rem; font-weight: 200; letter-spacing: 10px; text-transform: uppercase; margin-bottom: 2rem; opacity: 0; transform: translateY(20px); }
+        .reveal-active .reveal-rarity { animation: fadeUp 1s 0.5s ease forwards; }
+        .reveal-active .reveal-name { animation: fadeUp 1s 0.7s ease forwards; }
+        .reveal-active .reveal-btn { animation: fadeUp 1s 1s ease forwards; }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+        /* --- CODEX LORE MODAL --- */
+        #codex-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(20px); display: none; justify-content: center; align-items: center; z-index: 400; }
+        .codex-container { width: 98%; max-width: 1400px; height: 85vh; display: flex; flex-direction: row; border-radius: 24px; box-shadow: 0 40px 80px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1); overflow: hidden; position: relative; }
+        .close-codex { position: absolute; top: 1.5rem; right: 1.5rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; z-index: 20; display: flex; justify-content: center; align-items: center; transition: 0.3s; }
+        .carousel-section { flex: 2.5; background: #000; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
+        .carousel-img { width: 100%; height: 100%; object-fit: cover; object-position: top center; opacity: 0; transition: opacity 0.5s ease; }
+        .carousel-controls { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.9) 10%, rgba(0,0,0,0.5) 60%, transparent); padding: 3rem 2.5rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .carousel-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; font-size: 1.5rem; backdrop-filter: blur(10px); transition: 0.3s; display: flex; justify-content: center; align-items: center; }
+        .skin-name { font-weight: 300; font-size: 1.2rem; letter-spacing: 2px; text-transform: uppercase; text-align: center; flex: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
+        .lore-section { flex: 1; padding: 2.5rem; overflow-y: auto; background: linear-gradient(135deg, rgba(20,22,35,0.9), rgba(10,12,20,0.98)); display: flex; flex-direction: column; }
+        .lore-title { font-size: 2.2rem; font-weight: 200; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 0.5rem; background: linear-gradient(45deg, var(--prism-1), var(--prism-2), var(--prism-3)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
+        .lore-subtitle { font-size: 1rem; color: var(--prism-4); font-weight: 400; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 1.5rem; }
+        .lore-text { font-size: 0.95rem; line-height: 1.7; color: var(--text-muted); font-weight: 300; }
+        .loading-spinner { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: 300; letter-spacing: 3px; font-size: 1.2rem; display: none; }
+        #flash-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #fff; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.6s; }
+
+        @media (max-width: 900px) {
+            .codex-container { flex-direction: column; height: 95vh; }
+            .carousel-section { flex: 1.5; min-height: 40vh; }
+            .lore-section { flex: 1; padding: 1.5rem; }
+            .reveal-name { font-size: 2.5rem; }
+            .reveal-overlay { padding: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <svg class="bg-lines" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <defs>
+            <linearGradient id="prism" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffb88c" /><stop offset="33%" stop-color="#ff7eb3" /><stop offset="66%" stop-color="#b28dff" /><stop offset="100%" stop-color="#6ebcf0" />
+            </linearGradient>
+            <linearGradient id="prism-rev" x1="100%" y1="100%" x2="0%" y2="0%">
+                <stop offset="0%" stop-color="#ffb88c" /><stop offset="33%" stop-color="#ff7eb3" /><stop offset="66%" stop-color="#b28dff" /><stop offset="100%" stop-color="#6ebcf0" />
+            </linearGradient>
+        </defs>
+        <path class="wave wave1" d="M -10,10 C 30,50 60,10 110,60" stroke="url(#prism)" />
+        <path class="wave wave2" d="M -10,80 C 40,90 50,20 110,30" stroke="url(#prism-rev)" />
+        <path class="wave wave3" d="M 110,80 C 80,100 20,40 -10,60" stroke="url(#prism)" />
+        <path class="wave wave4" d="M 30,-10 C 60,40 20,70 60,110" stroke="url(#prism-rev)" />
+        <path class="wave wave5" d="M 80,-10 C 100,50 40,60 20,110" stroke="url(#prism)" />
+    </svg>
+
+    <header class="liquid-glass">
+        <h1>Challenger Focus <span id="dev-badge">DEV</span></h1>
+        
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <button id="login-btn" class="modern-btn" style="min-width: 120px; padding: 0.5rem 1rem; font-size: 0.7rem;" onclick="login()"><span>Sync Google</span></button>
+            <div id="user-pill" style="display: none; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
+                <img id="user-photo" src="" style="width: 24px; height: 24px; border-radius: 50%;">
+                <span id="user-name" style="font-size: 0.8rem;"></span>
+                <span style="opacity:0.3; cursor:pointer; margin-left: 5px;" onclick="logout()">✕</span>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div>Focus: <strong id="total-time-ui">0.00</strong> hrs</div>
+            <div class="me-icon-container" onclick="tryDevMode()">
+                Mythic Essence: <strong id="gem-count-ui">0</strong> 
+                <img src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/currency/tokens/mythic_essence.png" class="me-icon" alt="ME">
+            </div>
+        </div>
+    </header>
+
+    <div class="tabs">
+        <button class="nav-btn active" onclick="switchTab(this, 'timer')">Focus Session</button>
+        <button class="nav-btn" onclick="switchTab(this, 'collection')">Champion Codex</button>
+    </div>
+
+    <div class="container liquid-glass" style="min-height: 500px;">
+        <div id="timer-view" class="view active">
+            <div class="timer-display" id="timer-display">00:00:00</div>
+            <div class="timer-controls">
+                <button id="toggle-btn" class="modern-btn primary" onclick="toggleTimer()"><span id="toggle-text">Initiate</span></button>
+                <button id="save-btn" class="modern-btn secondary" onclick="saveTimer()"><span>Conclude & Save</span></button>
+            </div>
+            <p id="cost-info" style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 300;">
+                1 Mythic Essence <img src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/currency/tokens/mythic_essence.png" class="me-icon" alt="ME"> awarded per 15 minutes.
+            </p>
+        </div>
+        <div id="collection-view" class="view"><div class="grid" id="collection-grid"></div></div>
+    </div>
+
+    <button class="summon-fab" onclick="openSummonScreen()"><span>✦</span> Enter Summon Portal</button>
+
+    <div id="summon-screen">
+        <div class="summon-bg" id="summon-canvas"></div>
+        <button class="close-summon" onclick="closeSummonScreen()">✕ CLOSE</button>
+        <div class="summon-orb-container">
+            <div class="orb-rings"></div>
+            <div class="orb-rings"></div>
+            <div class="summon-orb" id="main-orb" onclick="executeSummon()"></div>
+        </div>
+        <div class="summon-text" style="margin-top: 3rem; letter-spacing: 5px; font-weight: 200;">TOUCH TO MANIFEST</div>
+    </div>
+
+    <div id="reveal-screen">
+        <img id="reveal-img" class="reveal-splash" src="" alt="">
+        <div class="reveal-overlay">
+            <div id="reveal-rarity" class="reveal-rarity">Legendary</div>
+            <div id="reveal-name" class="reveal-name">Jinx</div>
+            <button class="modern-btn primary reveal-btn" style="opacity: 0;" onclick="closeReveal()"><span>Accept Identity</span></button>
+        </div>
+    </div>
+
+    <div id="flash-overlay"></div>
+
+    <div id="codex-modal">
+        <div class="codex-container">
+            <button class="close-codex" onclick="closeCodexModal()">✕</button>
+            <div class="carousel-section">
+                <div class="loading-spinner" id="carousel-loading">Connecting...</div>
+                <img id="carousel-img" class="carousel-img" src="" alt="" onload="this.style.opacity=1">
+                <div class="carousel-controls">
+                    <button class="carousel-btn" onclick="prevSkin()">&#10094;</button>
+                    <div class="skin-name" id="carousel-skin-name">Default</div>
+                    <button class="carousel-btn" onclick="nextSkin()">&#10095;</button>
+                </div>
+            </div>
+            <div class="lore-section">
+                <h1 class="lore-title" id="lore-name">Loading...</h1>
+                <h3 class="lore-subtitle" id="lore-title"></h3>
+                <div class="lore-text" id="lore-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. FIREBASE CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfLuaBub2hnDz3o4bpy6g7jJWGJhUC_X4",
+            authDomain: "challenger-focus-89bae.firebaseapp.com",
+            projectId: "challenger-focus-89bae",
+            storageBucket: "challenger-focus-89bae.firebasestorage.app",
+            messagingSenderId: "110057760971",
+            appId: "1:110057760971:web:114419fb2a579ae974134e"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const provider = new firebase.auth.GoogleAuthProvider();
+        
+        let currentUser = null;
+
+        // --- 2. AUTHENTICATION & SYNCING LOGIC ---
+        function login() { auth.signInWithPopup(provider).catch(err => alert("Login Failed: " + err.message)); }
+        function logout() { auth.signOut().then(() => location.reload()); }
+
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('login-btn').style.display = 'none';
+                document.getElementById('user-pill').style.display = 'flex';
+                document.getElementById('user-name').innerText = user.displayName.split(' ')[0];
+                document.getElementById('user-photo').src = user.photoURL;
+                
+                // Pull data from Firestore
+                const doc = await db.collection('users').doc(user.uid).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    gems = data.gems !== undefined ? data.gems : gems;
+                    totalStudySeconds = data.totalStudySeconds !== undefined ? data.totalStudySeconds : totalStudySeconds;
+                    unconvertedSeconds = data.unconvertedSeconds !== undefined ? data.unconvertedSeconds : unconvertedSeconds;
+                    unlockedChamps = data.unlockedChamps || unlockedChamps;
+                }
+            }
+            // Always update UI after checking state
+            updateHeaderStats();
+            renderCollection();
+        });
+
+        async function syncData() {
+            if (currentUser) {
+                await db.collection('users').doc(currentUser.uid).set({
+                    gems: gems,
+                    totalStudySeconds: totalStudySeconds,
+                    unconvertedSeconds: unconvertedSeconds,
+                    unlockedChamps: unlockedChamps
+                }, { merge: true });
+            } else {
+                // Fallback to local storage if not logged in
+                localStorage.setItem('gems', gems);
+                localStorage.setItem('totalStudySeconds', totalStudySeconds);
+                localStorage.setItem('unconvertedSeconds', unconvertedSeconds);
+                localStorage.setItem('unlockedChamps', JSON.stringify(unlockedChamps));
+            }
+        }
+
+
+        // --- 3. ORIGINAL DATA & GAME LOGIC ---
+        const championData = {
+            'Top': { rarity: 'Common', champs: ['Aatrox', 'Ambessa', 'Camille', 'Chogath', 'Darius', 'DrMundo', 'Fiora', 'Gangplank', 'Garen', 'Gnar', 'Gwen', 'Illaoi', 'Irelia', 'Jax', 'Jayce', 'KSante', 'Kayle', 'Kennen', 'Kled', 'Malphite', 'Maokai', 'Mordekaiser', 'Nasus', 'Olaf', 'Ornn', 'Pantheon', 'Poppy', 'Quinn', 'Renekton', 'Riven', 'Rumble', 'Sett', 'Shen', 'Singed', 'Sion', 'TahmKench', 'Teemo', 'Trundle', 'Tryndamere', 'Urgot', 'Volibear', 'Yorick']},
+            'Support': { rarity: 'Rare', champs: ['Alistar', 'Bard', 'Blitzcrank', 'Braum', 'Janna', 'Karma', 'Leona', 'Lulu', 'Mel', 'Milio', 'Morgana', 'Nami', 'Nautilus', 'Pyke', 'Rakan', 'Rell', 'Renata', 'Senna', 'Seraphine', 'Sona', 'Soraka', 'Taric', 'Thresh', 'Yuumi', 'Zilean', 'Zyra']},
+            'Jungle': { rarity: 'Epic', champs: ['Amumu', 'Belveth', 'Briar', 'Diana', 'Ekko', 'Elise', 'Evelynn', 'Fiddlesticks', 'Gragas', 'Graves', 'Hecarim', 'Ivern', 'JarvanIV', 'Karthus', 'Kayn', 'Khazix', 'Kindred', 'LeeSin', 'Lillia', 'MasterYi', 'MonkeyKing', 'Nidalee', 'Nocturne', 'Nunu', 'Rammus', 'RekSai', 'Rengar', 'Sejuani', 'Shaco', 'Shyvana', 'Skarner', 'Talon', 'Udyr', 'Vi', 'Viego', 'Warwick', 'XinZhao', 'Zac']},
+            'Mid': { rarity: 'Mythic', champs: ['Ahri', 'Akali', 'Akshan', 'Anivia', 'Annie', 'AurelionSol', 'Aurora', 'Azir', 'Brand', 'Cassiopeia', 'Corki', 'Fizz', 'Galio', 'Heimerdinger', 'Hwei', 'Kassadin', 'Katarina', 'Leblanc', 'Lissandra', 'Lux', 'Malzahar', 'Naafiri', 'Neeko', 'Orianna', 'Qiyana', 'Ryze', 'Swain', 'Sylas', 'Syndra', 'Taliyah', 'TwistedFate', 'Veigar', 'Velkoz', 'Vex', 'Viktor', 'Vladimir', 'Xerath', 'Yasuo', 'Yone', 'Zed', 'Ziggs', 'Zoe']},
+            'ADC': { rarity: 'Legendary', champs: ['Aphelios', 'Ashe', 'Caitlyn', 'Draven', 'Ezreal', 'Jhin', 'Jinx', 'Kaisa', 'Kalista', 'KogMaw', 'Lucian', 'MissFortune', 'Nilah', 'Samira', 'Sivir', 'Smolder', 'Tristana', 'Twitch', 'Varus', 'Vayne', 'Xayah', 'Zeri']}
+        };
+
+        let isDevMode = false;
+        let gems = parseInt(localStorage.getItem('gems')) || 0;
+        let totalStudySeconds = parseInt(localStorage.getItem('totalStudySeconds')) || 0;
+        let unconvertedSeconds = parseInt(localStorage.getItem('unconvertedSeconds')) || 0;
+        let unlockedChamps = JSON.parse(localStorage.getItem('unlockedChamps')) || [];
+        let isRunning = false, timerInterval = null, currentSessionSeconds = 0, ddragonVersion = '14.4.1';
+
+        fetch('https://ddragon.leagueoflegends.com/api/versions.json').then(res => res.json()).then(data => { ddragonVersion = data[0]; });
+        
+        function updateHeaderStats() {
+            document.getElementById('total-time-ui').innerText = (totalStudySeconds / 3600).toFixed(2);
+            document.getElementById('gem-count-ui').innerText = isDevMode ? '∞' : gems;
+        }
+
+        function tryDevMode() {
+            const pass = prompt("Enter System Override Code:");
+            if (pass === "Chroma") {
+                isDevMode = true;
+                document.getElementById('dev-badge').style.display = 'inline-block';
+                document.getElementById('cost-info').style.color = '#ff4757';
+                document.getElementById('cost-info').innerHTML = 'DEVELOPER OVERRIDE: Unlimited Essences Active.';
+                updateHeaderStats();
+                alert("Developer Mode Manifested.");
+            }
+        }
+
+        function toggleTimer() {
+            if (isRunning) { clearInterval(timerInterval); document.getElementById('toggle-text').innerText = "RESUME"; } 
+            else { 
+                timerInterval = setInterval(() => { currentSessionSeconds++; updateTimerDisplay(); }, 1000); 
+                document.getElementById('toggle-text').innerText = "PAUSE"; 
+                document.getElementById('save-btn').classList.add('visible');
+            }
+            isRunning = !isRunning;
+        }
+
+        function saveTimer() {
+            totalStudySeconds += currentSessionSeconds; unconvertedSeconds += currentSessionSeconds;
+            let newGems = Math.floor(unconvertedSeconds / 900);
+            if (newGems > 0) { gems += newGems; unconvertedSeconds %= 900; }
+            
+            clearInterval(timerInterval); isRunning = false; currentSessionSeconds = 0;
+            document.getElementById('toggle-text').innerText = "INITIATE";
+            document.getElementById('save-btn').classList.remove('visible');
+            
+            updateTimerDisplay(); 
+            updateHeaderStats();
+            syncData(); // Save to Firebase/Local
+        }
+
+        function updateTimerDisplay() {
+            const h = Math.floor(currentSessionSeconds / 3600).toString().padStart(2, '0');
+            const m = Math.floor((currentSessionSeconds % 3600) / 60).toString().padStart(2, '0');
+            const s = (currentSessionSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `${h}:${m}:${s}`;
+        }
+
+        function openSummonScreen() {
+            const s = document.getElementById('summon-screen');
+            s.style.display = 'flex'; setTimeout(() => s.style.opacity = '1', 10);
+        }
+
+        function closeSummonScreen() {
+            const s = document.getElementById('summon-screen');
+            s.style.opacity = '0'; setTimeout(() => s.style.display = 'none', 1000);
+        }
+
+        function executeSummon() {
+            if (!isDevMode && gems < 1) { alert("Insufficient Mythic Essence."); return; }
+            
+            if (!isDevMode) {
+                gems--; updateHeaderStats();
+            }
+
+            const orb = document.getElementById('main-orb');
+            orb.style.transform = 'scale(2.5)';
+            orb.style.filter = 'brightness(5)';
+            orb.style.boxShadow = '0 0 200px #fff';
+
+            setTimeout(() => {
+                const flash = document.getElementById('flash-overlay');
+                flash.style.opacity = '1';
+                
+                setTimeout(() => {
+                    const roll = Math.random();
+                    let role = roll < 0.4 ? 'Top' : roll < 0.7 ? 'Support' : roll < 0.9 ? 'Jungle' : roll < 0.98 ? 'Mid' : 'ADC';
+                    const pool = championData[role].champs;
+                    const champ = pool[Math.floor(Math.random() * pool.length)];
+
+                    if (!unlockedChamps.includes(champ)) {
+                        unlockedChamps.push(champ);
+                        renderCollection();
+                    }
+
+                    showReveal(champ, role, championData[role].rarity);
+                    
+                    orb.style.transform = ''; orb.style.filter = ''; orb.style.boxShadow = '';
+                    flash.style.opacity = '0';
+                    closeSummonScreen();
+                    
+                    syncData(); // Save new champion to Firebase/Local
+                }, 600);
+            }, 1000);
+        }
+
+        function showReveal(id, role, rarity) {
+            const screen = document.getElementById('reveal-screen');
+            const img = document.getElementById('reveal-img');
+            img.src = `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${id}_0.jpg`;
+            document.getElementById('reveal-name').innerText = id;
+            document.getElementById('reveal-rarity').innerText = `${rarity} // ${role}`;
+            
+            screen.style.display = 'block';
+            setTimeout(() => { screen.style.opacity = '1'; screen.classList.add('reveal-active'); }, 50);
+        }
+
+        function closeReveal() {
+            const screen = document.getElementById('reveal-screen');
+            screen.style.opacity = '0';
+            setTimeout(() => { screen.style.display = 'none'; screen.classList.remove('reveal-active'); }, 1500);
+        }
+
+        function renderCollection() {
+            const grid = document.getElementById('collection-grid'); grid.innerHTML = '';
+            const all = []; Object.keys(championData).forEach(r => championData[r].champs.forEach(c => all.push({id: c, role: r, rarity: championData[r].rarity})));
+            all.sort((a,b) => a.id.localeCompare(b.id)).forEach(c => {
+                const unlocked = unlockedChamps.includes(c.id);
+                const card = document.createElement('div');
+                card.className = `champ-card ${unlocked ? '' : 'locked'}`;
+                card.onclick = () => openCodex(c.id);
+                card.innerHTML = `<img src="https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${c.id}_0.jpg"><div class="name-tag">${c.id}${unlocked ? '' : '<span class="locked-status">LOCKED</span>'}</div>`;
+                grid.appendChild(card);
+            });
+        }
+
+        async function openCodex(id) {
+            const m = document.getElementById('codex-modal'); m.style.display = 'flex';
+            try {
+                const res = await fetch(`https://ddragon.leagueoflegends.com/cdn/${ddragonVersion}/data/en_US/champion/${id}.json`);
+                const data = (await res.json()).data[id];
+                document.getElementById('lore-name').innerText = data.name;
+                document.getElementById('lore-title').innerText = data.title;
+                document.getElementById('lore-body').innerText = data.lore;
+                document.getElementById('carousel-img').src = `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${id}_0.jpg`;
+            } catch(e) { console.error(e); }
+        }
+
+        function closeCodexModal() { document.getElementById('codex-modal').style.display = 'none'; }
+        function switchTab(btn, id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id + '-view').classList.add('active'); btn.classList.add('active');
+        }
+
+        // Initialize state on load
+        updateHeaderStats(); renderCollection();
+    </script>
+</body>
+</html>
