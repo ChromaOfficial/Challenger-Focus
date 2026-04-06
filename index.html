@@ -11,8 +11,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    
-    <script src="https://unpkg.com/smartcrop@2.0.3/smartcrop.js"></script>
 
     <style>
         /* --- CORE THEME & TYPOGRAPHY --- */
@@ -154,9 +152,10 @@
 
         /* --- CINEMATIC REVEAL --- */
         #reveal-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; z-index: 500; display: none; opacity: 0; transition: opacity 1.5s ease; overflow: hidden; background: #000; }
-        .reveal-splash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.7); transform: scale(1.1); animation: zoomOut 8s ease forwards; }
+        .reveal-splash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.7); transform: scale(1.1); animation: zoomOut 8s ease forwards; z-index: 1; }
+        .reveal-icon { display: none; /* Hidden by default on PC */ }
         @keyframes zoomOut { to { transform: scale(1); } }
-        .reveal-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%); display: flex; flex-direction: column; justify-content: flex-end; padding: 5rem; align-items: flex-start; }
+        .reveal-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%); display: flex; flex-direction: column; justify-content: flex-end; padding: 5rem; align-items: flex-start; z-index: 10; }
         .reveal-rarity { font-size: 1rem; letter-spacing: 5px; text-transform: uppercase; color: var(--prism-3); margin-bottom: 1rem; opacity: 0; transform: translateY(20px); }
         .reveal-name { font-size: 5rem; font-weight: 200; letter-spacing: 10px; text-transform: uppercase; margin-bottom: 2rem; opacity: 0; transform: translateY(20px); }
         .reveal-active .reveal-rarity { animation: fadeUp 1s 0.5s ease forwards; }
@@ -232,31 +231,61 @@
             }
             .container { margin-bottom: 2rem; } 
 
-            /* --- NEW CINEMATIC REVEAL SCREENS (MOBILE AI FIX) --- */
+            /* --- NEW MOBILE REVEAL UI (CHAMPION SQUARE) --- */
             #reveal-screen {
                 display: none;
                 perspective: 1000px;
+                /* Add a dark atmospheric background since we hid the splash art */
+                background: radial-gradient(circle at center, #1a1e36 0%, #000 100%);
             }
             .reveal-splash {
-                object-fit: cover;
-                width: 100%;
-                height: 100%;
-                /* We set a default center position, but the SmartCrop JS will overwrite this almost instantly! */
-                object-position: center 20%; 
-                animation: mobileRevealZoom 10s ease-out forwards;
+                display: none; /* Completely hide full splash art on mobile */
             }
-            @keyframes mobileRevealZoom {
-                0% { transform: scale(1.4) translateY(0); }
-                100% { transform: scale(1.1) translateY(5%); }
+            
+            /* This is the new Champion Square Image */
+            .reveal-icon {
+                display: block;
+                position: absolute;
+                top: 40%;
+                left: 50%;
+                width: 140px;
+                height: 140px;
+                transform: translate(-50%, -50%) scale(0.8);
+                border-radius: 20px; 
+                box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 0 2px rgba(255,255,255,0.2), 0 0 40px rgba(178, 141, 255, 0.4);
+                opacity: 0;
+                animation: iconPop 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+                z-index: 5;
             }
+            @keyframes iconPop {
+                to { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            }
+            
+            /* Glow behind the champion square */
+            #reveal-screen::before {
+                content: '';
+                position: absolute;
+                top: 40%;
+                left: 50%;
+                width: 250px;
+                height: 250px;
+                transform: translate(-50%, -50%);
+                background: radial-gradient(circle, rgba(178, 141, 255, 0.2) 0%, transparent 70%);
+                z-index: 1;
+                opacity: 0;
+                animation: glowPop 1.5s ease 0.2s forwards;
+            }
+            @keyframes glowPop {
+                to { opacity: 1; transform: translate(-50%, -50%) scale(2); }
+            }
+
             .reveal-overlay {
-                height: 100%; 
-                background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 40%, transparent 100%);
-                justify-content: flex-end;
-                padding-bottom: 5rem; 
-                padding: 5rem 1.5rem; 
+                height: 50%; /* Only need bottom half now */
+                background: linear-gradient(to top, rgba(0,0,0,1) 0%, transparent 100%);
+                padding: 3rem 1.5rem; 
                 align-items: center; 
                 text-align: center;
+                z-index: 10;
             }
             .reveal-name {
                 font-size: 2.8rem; 
@@ -402,6 +431,9 @@
 
     <div id="reveal-screen">
         <img id="reveal-img" class="reveal-splash" src="" alt="">
+        
+        <img id="reveal-icon" class="reveal-icon" src="" alt="">
+        
         <div class="reveal-overlay">
             <div id="reveal-rarity" class="reveal-rarity">Legendary</div>
             <div id="reveal-name" class="reveal-name">Jinx</div>
@@ -432,28 +464,6 @@
     </div>
 
     <script>
-        // --- SMART CROP LOGIC FOR MOBILE ---
-        async function applySmartCrop(imgUrl) {
-            const img = new Image();
-            img.crossOrigin = "Anonymous"; // Required to analyze external images like the Data Dragon ones
-            img.src = imgUrl;
-
-            img.onload = function() {
-                // We analyze the image for a mobile-style tall crop (e.g., width 100 to height 175 is roughly a 9:16 ratio)
-                smartcrop.crop(img, { width: 100, height: 175 }).then(function(result) {
-                    const crop = result.topCrop;
-                    const revealImg = document.getElementById('reveal-img');
-                    
-                    // Convert the crop coordinates into percentages for CSS
-                    const centerX = ((crop.x + crop.width / 2) / img.width) * 100;
-                    const centerY = ((crop.y + crop.height / 2) / img.height) * 100;
-                    
-                    // Apply the focus to the reveal image so the CSS object-position aligns perfectly!
-                    revealImg.style.objectPosition = `${centerX}% ${centerY}%`;
-                });
-            };
-        }
-
         // --- SIDE MENU LOGIC ---
         function openMenu() {
             document.getElementById('side-menu').classList.add('active');
@@ -727,16 +737,19 @@
             }, 1000);
         }
 
-        // --- UPDATED REVEAL TO INCLUDE SMART CROP ---
+        // --- REVEAL FUNCTION ---
         function showReveal(id, role, rarity) {
             const screen = document.getElementById('reveal-screen');
             const img = document.getElementById('reveal-img');
+            const iconImg = document.getElementById('reveal-icon');
+            
+            const apiName = getApiName(id);
             const splashUrl = `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${id}_0.jpg`;
+            const iconUrl = `https://ddragon.leagueoflegends.com/cdn/${ddragonVersion}/img/champion/${apiName}.png`;
             
+            // Set both images (CSS handles which one is shown based on device)
             img.src = splashUrl;
-            
-            // Start the AI image analysis while the modal fades in!
-            applySmartCrop(splashUrl);
+            iconImg.src = iconUrl;
 
             document.getElementById('reveal-name').innerText = formatChampName(id);
             document.getElementById('reveal-rarity').innerText = `${rarity} // ${role}`;
